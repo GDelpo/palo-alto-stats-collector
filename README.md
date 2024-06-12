@@ -37,7 +37,12 @@ Este proyecto consta de dos archivos principales: `main.py` y `models.py`, dise�
 
 ### Ejecución del Proyecto
 
-Para ejecutar el proyecto, simplemente ejecute el archivo `main.py`. Asegúrese de tener las dependencias necesarias instaladas, como `requests`, `xmltodict`, `dotenv` y `pandas`. También se deben configurar las variables de entorno `USER_IP` y `PASSWORD_IP` con las credenciales adecuadas para acceder a los dispositivos de red.
+Para ejecutar el proyecto, simplemente ejecute el archivo `main.py`. Asegúrese de tener las dependencias necesarias instaladas, como `requests`, `xmltodict`, `dotenv` y `pandas`, esto se simplifica ejecutando:
+
+```bash
+pip install -r requirements.txt
+```
+También se deben configurar las variables de entorno `USER_IP` y `PASSWORD_IP` con las credenciales adecuadas para acceder a los dispositivos de red dentro del archivo `.env`. Usar el `.env-example` para completar y cambiarle el nombre del archivo.
 
 ```bash
 python main.py
