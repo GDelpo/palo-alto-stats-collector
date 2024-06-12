@@ -1,7 +1,15 @@
+# Ignorar directorios
 __pycache__/
 env/
+.vscode/
+logs/
+
+# Ignorar archivos específicos
 *.xlsx
 *.txt
-!requirements.txt
+*.log
 .env
-.vscode/
+
+# Excepciones (no ignorar estos archivos)
+!requirements.txt
+!README.md

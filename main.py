@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # Importaciones locales
 from models import Device
-import logger as log
+from logger import info_logger, error_logger
 
 
 def check_response(result_dict):
@@ -80,7 +80,7 @@ def get_response(url):
         if check_response(result_dict):
             return result_dict
     except requests.exceptions.RequestException as e:
-        log.error_logger(f"Request failed -> {url}: {e}")
+        error_logger.error(f"Request failed -> {url}: {e}")
     return None
 
 def save_to_txt(result_dict, filename='output.txt'):
@@ -162,9 +162,9 @@ def save_to_excel(devices, filename='output.xlsx'):
         # Save the combined DataFrame to Excel
         final_df.to_excel(filename, index=False)
         # Log the information
-        log.info_logger(f"Device information saved to {filename}")
+        info_logger.info(f"Device information saved to {filename}")
     except Exception as e:
-        log.error_logger(f"Error saving device information to Excel: {e}")
+        error_logger.error(f"Error saving device information to Excel: {e}")
 
 def main():
     """Main function to retrieve and process device information."""
@@ -195,19 +195,19 @@ def main():
 
     # Check if the credentials are set
     if not user_ip or not password_ip:
-        log.error_logger("USER_IP or PASSWORD_IP not set in environment variables.")
+        error_logger.error("USER_IP or PASSWORD_IP not set in environment variables.")
         return
     
     # Iterate over the list of IP addresses
     for ip in list_ips:
-        log.info_logger(f"Starting procces for: {ip}")
+        info_logger.info(f"Starting procces for: {ip}")
         # List to store all the data retrieved from the device
         data_total = []
         # Generate the API key
         api_key = generate_api_key(ip, user_ip, password_ip)
         # If the API key was successfully generated, retrieve the device information
         if api_key:
-            log.info_logger(f"API key generated for {ip}")
+            info_logger.info(f"API key generated for {ip}")
             # Iterate over the list of URIs and retrieve the information
             for uri in list_uris:
                 # Construct the full URL
@@ -218,20 +218,21 @@ def main():
                     info = result_dict['response'].get('result')
                     # Append the information to the data_total list
                     if info:
-                        log.info_logger(f"Data retrieved from {uri}")
+                        info_logger.info(f"Data retrieved from {uri}")
                         data_total.append(info)
                     else:
-                        log.error_logger(f"No data retrieved from {uri}")
+                        error_logger.error(f"No data retrieved ({ip}) from {uri}")
             # Process the device information and create a new Device object
             new_device = process_device_info(data_total)
             # If a new device was created, append it to the devices list
             if new_device:
                 devices.append(new_device)
-                log.info_logger(f"Device information processed for {ip}")
+                info_logger.info(f"Device information processed for {ip}")
+                info_logger.info(f"{'-'*50}")
             else:
-                log.error_logger(f"Failed to process device information for {ip}")
+                error_logger.error(f"Failed to process device information for {ip}")
         else:
-            log.error_logger(f"Failed to generate API key for {ip}")
+            error_logger.error(f"Failed to generate API key for {ip}")
 
     # Save the device information to an Excel file
     if devices:
