@@ -1,9 +1,17 @@
+# Importaciones de bibliotecas estándar de Python
 import os
+import json
+
+# Importaciones de bibliotecas externas
 import requests
+import pandas as pd
 import xmltodict
 from dotenv import load_dotenv
+
+# Importaciones locales
 from models import Device
-import pandas as pd
+import logger as log
+
 
 def check_response(result_dict):
     """
@@ -36,6 +44,15 @@ def get_api_key(result_dict):
         return result_dict['response']['result'].get('key')
     return None
 
+def generate_api_key(ip, user_ip, password_ip):
+    uri = f"/api/?type=keygen&user={user_ip}&password={password_ip}"
+    full_url = get_full_url(ip, uri)
+    
+    result_dict = get_response(full_url)
+    if result_dict:
+        return get_api_key(result_dict)
+    return None
+
 def get_full_url(ip, uri, api_key=None):
     """Construct the full URL based on the IP, URI, and API key."""
     if api_key is None:
@@ -57,13 +74,13 @@ def get_response(url):
 
     """
     try:
-        response = requests.get(url, verify=False)
+        response = requests.post(url, verify=False)
         response.raise_for_status()
         result_dict = xmltodict.parse(response.text)
         if check_response(result_dict):
             return result_dict
     except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
+        log.error_logger(f"Request failed -> {url}: {e}")
     return None
 
 def save_to_txt(result_dict, filename='output.txt'):
@@ -74,7 +91,6 @@ def save_to_txt(result_dict, filename='output.txt'):
         result_dict (dict): The dictionary to be saved.
         filename (str, optional): The name of the output file. Defaults to 'output.txt'.
     """
-    import json
     with open(filename, 'w') as f:
         json.dump(result_dict, f, indent=4)
 
@@ -90,11 +106,12 @@ def process_device_info(info):
 
     """
     new_device = None
-
+    # Iterate over the list of dictionaries
     for item in info:
+        # Check if the item is a dictionary
         if isinstance(item, dict):
             system_info = item.get('system')
-            
+            # If the 'system' key exists in the dictionary, extract the information
             if system_info:
                 new_device = Device(
                     system_info.get('hostname'), system_info.get('model'), system_info.get('serial'),
@@ -104,7 +121,9 @@ def process_device_info(info):
                     system_info.get('wildfire-version'), system_info.get('url-filtering-version'),
                     system_info.get('device-certificate-status')
                 )
+            # Extract the licenses information
             licenses_info = item.get('licenses')
+            # If the 'licenses' key exists in the dictionary, extract the information
             if licenses_info:
                 licenses = licenses_info.get('entry', [])
                 for license in licenses:
@@ -136,17 +155,24 @@ def save_to_excel(devices, filename='output.xlsx'):
         
         all_data.append(device_df)
 
-    # Combine all individual DataFrames into one
-    final_df = pd.concat(all_data, ignore_index=True)
+    try:
+        # Combine all individual DataFrames into one
+        final_df = pd.concat(all_data, ignore_index=True)
 
-    # Save the combined DataFrame to Excel
-    final_df.to_excel(filename, index=False)
-    print("Data saved to 'devices_info_combined.xlsx'.")
+        # Save the combined DataFrame to Excel
+        final_df.to_excel(filename, index=False)
+        # Log the information
+        log.info_logger(f"Device information saved to {filename}")
+    except Exception as e:
+        log.error_logger(f"Error saving device information to Excel: {e}")
 
 def main():
     """Main function to retrieve and process device information."""
+
+    # Load the environment variables
     load_dotenv()
 
+    # List of URIs to retrieve the information from
     list_uris = [
         "<show><system><info></info></system></show>",
         "<show><redistribution><service><status/></service></redistribution></show>",
@@ -154,38 +180,60 @@ def main():
         "<show><user><user-id-service><status></status></user-id-service></user></show>",
         "<show><user><user-id-agent><statistics></statistics></user-id-agent></user></show>",
         "<show><user><user-id-service><client>all</client></user-id-service></user></show>",
-        "<request><license><info><%2Finfo><%2Flicense><%2Frequest>"
+        "<request><license><info></info></license></request>"
     ]
-    list_ips = ['192.0.2.254']
+
+    # List of IP addresses to retrieve the information from
+    list_ips = ['192.0.2.254'] # Pasar a un archivo de configuración, crear un método para leerlo
+
+    # List to store all the devices objects
     devices = []
 
+    # Retrieve the credentials from the environment variables
     user_ip = os.getenv('USER_IP')
     password_ip = os.getenv('PASSWORD_IP')
 
+    # Check if the credentials are set
     if not user_ip or not password_ip:
-        print("USER_IP or PASSWORD_IP not set in environment variables.")
+        log.error_logger("USER_IP or PASSWORD_IP not set in environment variables.")
         return
-
+    
+    # Iterate over the list of IP addresses
     for ip in list_ips:
+        log.info_logger(f"Starting procces for: {ip}")
+        # List to store all the data retrieved from the device
         data_total = []
-        uri = f"/api/?type=keygen&user={user_ip}&password={password_ip}"
-        full_url = get_full_url(ip, uri)
-        
-        result_dict = get_response(full_url)
-        api_key = get_api_key(result_dict)
-
+        # Generate the API key
+        api_key = generate_api_key(ip, user_ip, password_ip)
+        # If the API key was successfully generated, retrieve the device information
         if api_key:
+            log.info_logger(f"API key generated for {ip}")
+            # Iterate over the list of URIs and retrieve the information
             for uri in list_uris:
+                # Construct the full URL
                 full_url = get_full_url(ip, uri, api_key)
                 result_dict = get_response(full_url)
+                # If the response is successful, extract the information
                 if result_dict:
                     info = result_dict['response'].get('result')
+                    # Append the information to the data_total list
                     if info:
+                        log.info_logger(f"Data retrieved from {uri}")
                         data_total.append(info)
+                    else:
+                        log.error_logger(f"No data retrieved from {uri}")
+            # Process the device information and create a new Device object
             new_device = process_device_info(data_total)
+            # If a new device was created, append it to the devices list
             if new_device:
                 devices.append(new_device)
-    
+                log.info_logger(f"Device information processed for {ip}")
+            else:
+                log.error_logger(f"Failed to process device information for {ip}")
+        else:
+            log.error_logger(f"Failed to generate API key for {ip}")
+
+    # Save the device information to an Excel file
     if devices:
         save_to_excel(devices)    
      
