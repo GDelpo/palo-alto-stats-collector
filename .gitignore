@@ -2,5 +2,6 @@ __pycache__/
 env/
 *.xlsx
 *.txt
+!requirements.txt
 .env
 .vscode/
