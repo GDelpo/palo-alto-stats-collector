@@ -36,11 +36,11 @@ class Device:
 
     def to_dict(self):
         return {
+            'ip_address': self.ip_address,
             'hostname': self.hostname,
             'model': self.model,
-            'serial': self.serial,
-            'ip_address': self.ip_address,
             'sw_version': self.sw_version,
+            'serial': self.serial,            
             'global_protect_client_package_version': self.global_protect_client_package_version,
             'app_version': self.app_version,
             'av_version': self.av_version,
@@ -53,8 +53,8 @@ class Device:
 
     def __str__(self):
         licenses_str = '\n\n'.join([str(license) for license in self.licenses])
-        return (f"Hostname: {self.hostname}\nModel: {self.model}\nSerial: {self.serial}\nIP Address: {self.ip_address}\n"
-                f"SW Version: {self.sw_version}\nGlobal Protect Client Package Version: {self.global_protect_client_package_version}\n"
+        return (f"IP Address: {self.ip_address}\nHostname: {self.hostname}\nModel: {self.model}\nSW Version: {self.sw_version}\n"
+                f"Serial: {self.serial}\nGlobal Protect Client Package Version: {self.global_protect_client_package_version}\n"
                 f"App Version: {self.app_version}\nAV Version: {self.av_version}\nThreat Version: {self.threat_version}\n"
                 f"Wildfire Version: {self.wildfire_version}\nURL Filtering Version: {self.url_filtering_version}\n"
                 f"Device Certificate Status: {self.device_certificate_status}\nLicenses:\n{licenses_str}")
