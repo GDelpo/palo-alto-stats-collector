@@ -8,7 +8,10 @@ logs/
 *.xlsx
 *.txt
 *.log
+*.html
+*.json
 .env
+
 
 # Excepciones (no ignorar estos archivos)
 !requirements.txt

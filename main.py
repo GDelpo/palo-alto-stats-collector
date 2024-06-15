@@ -1,6 +1,5 @@
 # Importaciones de bibliotecas estándar de Python
 import os
-import json
 
 # Importaciones de bibliotecas externas
 import requests
@@ -83,17 +82,6 @@ def get_response(url):
         error_logger.error(f"Request failed -> {url}: {e}")
     return None
 
-def save_to_txt(result_dict, filename='output.txt'):
-    """
-    Save a dictionary to a text file in JSON format.
-
-    Args:
-        result_dict (dict): The dictionary to be saved.
-        filename (str, optional): The name of the output file. Defaults to 'output.txt'.
-    """
-    with open(filename, 'w') as f:
-        json.dump(result_dict, f, indent=4)
-
 def process_device_info(info):
     """
     Process device information and create a new Device object.
@@ -162,26 +150,17 @@ def save_to_excel(devices, filename='output.xlsx'):
         # Save the combined DataFrame to Excel
         final_df.to_excel(filename, index=False)
         # Log the information
-        info_logger.info(f"Device information saved to {filename}")
+        info_logger.info(f"All devices information saved to {filename}")
     except Exception as e:
         error_logger.error(f"Error saving device information to Excel: {e}")
 
-def main():
-    """Main function to retrieve and process device information."""
+if __name__ == '__main__':
 
     # Load the environment variables
     load_dotenv()
 
-    # List of URIs to retrieve the information from
-    list_uris = [
-        "<show><system><info></info></system></show>",
-        "<show><redistribution><service><status/></service></redistribution></show>",
-        "<show><redistribution><agent><state>all</state></agent></redistribution></show>",
-        "<show><user><user-id-service><status></status></user-id-service></user></show>",
-        "<show><user><user-id-agent><statistics></statistics></user-id-agent></user></show>",
-        "<show><user><user-id-service><client>all</client></user-id-service></user></show>",
-        "<request><license><info></info></license></request>"
-    ]
+    # Dividir la cadena en una lista de URIs usando el delimitador '|'
+    list_uris = os.getenv('URIS').split('|')
 
     # List of IP addresses to retrieve the information from
     list_ips = ['192.0.2.254'] # Pasar a un archivo de configuración, crear un método para leerlo
@@ -196,7 +175,7 @@ def main():
     # Check if the credentials are set
     if not user_ip or not password_ip:
         error_logger.error("USER_IP or PASSWORD_IP not set in environment variables.")
-        return
+        exit()
     
     # Iterate over the list of IP addresses
     for ip in list_ips:
@@ -227,8 +206,7 @@ def main():
             # If a new device was created, append it to the devices list
             if new_device:
                 devices.append(new_device)
-                info_logger.info(f"Device information processed for {ip}")
-                info_logger.info(f"{'-'*50}")
+                info_logger.info(f"Device information processed for {ip}")                
             else:
                 error_logger.error(f"Failed to process device information for {ip}")
         else:
@@ -236,7 +214,9 @@ def main():
 
     # Save the device information to an Excel file
     if devices:
-        save_to_excel(devices)    
-     
-if __name__ == '__main__':
-    main()
+        for device in devices:
+            print(device)
+
+        save_to_excel(devices)
+
+    info_logger.info(f"{'-'*50}")
