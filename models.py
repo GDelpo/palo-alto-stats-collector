@@ -33,6 +33,10 @@ class Device:
         self.device_certificate_status = device_certificate_status
         self.licenses = []
     
+    def identify_model(self):
+        type_model = self.model[0:2]
+        return type_model
+    
     def add_license(self, feature, issued, expired):
         self.licenses.append(License(feature, issued, expired))
 

@@ -253,4 +253,4 @@ if __name__ == '__main__':
     devices = main_process()
     if devices:
         for device in devices:
-            print(device)
+            print(str(device.indentify_model()))
