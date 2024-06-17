@@ -1,8 +1,10 @@
+from datetime import datetime
+
 class License:
     def __init__(self, feature, issued, expired):
         self.feature = feature
-        self.issued = issued
-        self.expired = expired
+        self.issued = datetime.strptime(issued, "%B %d, %Y").strftime("%d/%m/%Y")
+        self.expired = True if expired == 'yes' else False
 
     def to_dict(self):
         return {

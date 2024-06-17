@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import re
+import time
 
 # Importaciones de bibliotecas externas
 from bs4 import BeautifulSoup  # Para analizar y manipular documentos HTML y XML
@@ -45,6 +46,8 @@ def search_last_modified_html_file(parent_dir):
     Returns:
         str: The content of the most recently modified HTML file.
     """
+    info_logger.info(f'Directory to search for HTML files: {parent_dir}')
+
     # Search for HTML files in the specified directory
     html_files = [file for file in os.listdir(parent_dir) if file.endswith('.html')]
 
@@ -104,6 +107,8 @@ def search_tables(html_content, initial_text, final_text):
         list: A list of tuples containing the preceding h2 tag text and the corresponding table (str).
 
     """
+    info_logger.info(f"Searching for tables within the range '{initial_text}' - '{final_text}'")
+
     # Create the BeautifulSoup object
     soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -156,8 +161,8 @@ def extract_columns_from_row(row_soup_obj):
         release = tds[1].text.strip()
         release_date = tds[2].text.strip()
         comments = tds[3].text.strip()
-
-        data_row = [release, release_date, comments]
+        # Append the extracted data to the list 
+        data_row = [release, datetime.datetime.strptime(release_date, '%m/%d/%y').strftime('%d/%m/%Y'), comments]
     else:
         error_logger.error("The row does not have the expected format (not 4 <td> elements)")
         
@@ -179,9 +184,9 @@ def extract_info_from_table(table_str):
     """
     # Convert the string back to a BeautifulSoup object
     table_soup = BeautifulSoup(table_str, 'html.parser')
-
+    # Initialize the dictionary to store the ordered rows
     ordered_rows = {}
-
+    # Initialize the current version
     for row in table_soup.find_all('tr'):
         cell = row.find('td')
         if cell:
@@ -189,14 +194,13 @@ def extract_info_from_table(table_str):
             content = cell.text.strip()
             if cell.find('h1'):
                 # Found a new version
-                current_version = content
+                current_version = extract_version(content)[0] # Extract the version number without the rest of the content like comments
                 ordered_rows[current_version] = []
             elif content == 'P':
                 # Found a row with data
                 row_data = extract_columns_from_row(row)
-                if row_data != []:
-                    # Append the row data to the list of rows for the current version
-                    ordered_rows[current_version].append(row_data)
+                if row_data:  # Check if row_data is not empty
+                    ordered_rows[current_version].extend(row_data)
 
     return ordered_rows
 
@@ -209,15 +213,17 @@ def process_info_from_tables(tables_data):
         table_dict = {}
         # Extract information from the table
         ordered_rows = extract_info_from_table(table)
+        # Remove empty keys from the dictionary
+        ordered_rows_cleaned = {k: v for k, v in ordered_rows.items() if v}
         # Save the extracted information in a dictionary
-        table_dict[name_of_table] = ordered_rows
+        table_dict[name_of_table] = ordered_rows_cleaned
         # Append the dictionary to the list
         list_of_dicts.append(table_dict)
 
     return list_of_dicts
         
 
-def save_to_json(source_dir_parent, folder_name, list_of_dicts):
+def save_to_json(list_of_dicts):
     """
     Save a list of dictionaries to a JSON file.
 
@@ -229,12 +235,13 @@ def save_to_json(source_dir_parent, folder_name, list_of_dicts):
     Returns:
         None
     """
+    # Get the source directory for the JSON files
+    source_dir_json = get_source_dir('json')
 
-    # Current directory + Source parent directory + JSON directory
-    source_dir_json = os.path.join(source_dir_parent, folder_name)
     # Create the directory if it does not exist
     if not os.path.exists(source_dir_json):
         os.makedirs(source_dir_json)
+
     # Current directory + Source parent directory + JSON directory + name.json
     complete_name = os.path.join(source_dir_json, f'data_html_{datetime.date.today()}.json')
     try:
@@ -245,20 +252,47 @@ def save_to_json(source_dir_parent, folder_name, list_of_dicts):
     except Exception as e:
         error_logger.error(f"Error saving data to {complete_name}")
         raise e
-        
-if __name__ == '__main__':
-
-    # Current directory
+    
+def get_source_dir(subdir=''):
+    """
+    Returns the path to the source directory.
+    
+    Args:
+    subdir (str): Optional subdirectory name within the source directory.
+    
+    Returns:
+    str: Full path to the source directory or its subdirectory.
+    """
     current_dir = os.getcwd()
-    # Current directory + Source parent directory
     source_dir_parent = os.path.join(current_dir, 'source')
-    # Current directory + Source parent directory + HTML directory
-    source_dir = os.path.join(source_dir_parent, 'html')
-    # Print the directory to search for HTML files
-    info_logger.info(f'Directory to search for HTML files: {source_dir}')
+    if subdir:
+        source_dir = os.path.join(source_dir_parent, subdir)
+    else:
+        source_dir = source_dir_parent
+    return source_dir
+
+def extract_and_process_html_tables():
+    """
+    Extracts and processes HTML tables within a specified range.
+
+    This function performs the following steps:
+    1. Starts the HTML data extraction process.
+    2. Gets the source directory for the HTML files.
+    3. Retrieves the content of the most recently modified HTML file.
+    4. Searches for tables within a specific range.
+    5. Checks if there are tables within the specified range.
+    6. If tables are found, processes the information from the tables and saves it to a JSON file.
+    7. If no tables are found, raises a ValueError.
+
+    Returns:
+        None
+    """
+    # Start the HTML data extraction process
+    info_logger.info("Starting the HTML data extraction process...")
+    # Get the source directory for the HTML files
+    source_dir_html = get_source_dir('html')
     # Get the content of the most recently modified HTML file
-    html_content = search_last_modified_html_file(source_dir)
-    info_logger.info("Looking into the HTML, 'PAN-OS for Firewalls' to 'Prisma Access for Panorama'")
+    html_content = search_last_modified_html_file(source_dir_html)
     # Search for tables within a specific range
     tuple_of_tables_data = search_tables(html_content, 'PAN-OS for Firewalls', 'Prisma Access for Panorama')
     # Check if there are tables within the specified range
@@ -266,8 +300,15 @@ if __name__ == '__main__':
         info_logger.info(f"Found {len(tuple_of_tables_data)} tables within the specified range.") 
         # Create a list to store the dictionaries
         list_of_dicts = process_info_from_tables(tuple_of_tables_data)
-        # Save the list of dictionaries to a JSON file
-        save_to_json(source_dir_parent, 'json', list_of_dicts)
+        if len(list_of_dicts) > 0:
+            info_logger.info(f"Processed {len(list_of_dicts)} tables.")
+            # Save the list of dictionaries to a JSON file
+            save_to_json(list_of_dicts)
     else:
         error_logger.error("No tables found within the specified range.")
         raise ValueError("No tables found within the specified range.")
+    # End the HTML data extraction process
+    info_logger.info(f"{'-'*50}")
+    
+if __name__ == '__main__':
+    extract_and_process_html_tables()
