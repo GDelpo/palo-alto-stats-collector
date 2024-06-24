@@ -3,14 +3,13 @@ import datetime
 import json
 import os
 import re
-import time
 
 # Importaciones de bibliotecas externas
 from bs4 import BeautifulSoup  # Para analizar y manipular documentos HTML y XML
 
 # Importaciones locales
 from logger import info_logger, error_logger
-from utils import ensure_dir_exists, get_source_dir
+from utils import ensure_dir_exists, get_most_recent_file, get_source_dir
 
 def remove_specific_attributes_and_tags(html):
     """
@@ -47,24 +46,14 @@ def search_last_modified_html_file(parent_dir):
     Returns:
         str: The content of the most recently modified HTML file.
     """
-    info_logger.info(f'Directory to search for HTML files: {parent_dir}')
     # Initialize the HTML content variable
     html_content = None
     # Search for HTML files in the specified directory
-    html_files = [file for file in os.listdir(parent_dir) if file.endswith('.html')]
+    last_modified_html_file = get_most_recent_file(parent_dir, '.html')
 
-    if len(html_files) > 0:
-        # Find the most recently modified file
-        last_modified_file = max(html_files, key=lambda file: os.path.getmtime(os.path.join(parent_dir, file)))
-
-        # Get the full path of the file
-        full_path = os.path.abspath(os.path.join(parent_dir, last_modified_file))
-
-        # Print the full path of the most recently modified HTML file
-        info_logger.info(f'Path of the most recently modified ({datetime.datetime.fromtimestamp(os.path.getmtime(full_path))}) HTML file: {last_modified_file}')
-
+    if last_modified_html_file:
         # Load the HTML file
-        with open(full_path, 'r', encoding='utf-8') as file:
+        with open(last_modified_html_file, 'r', encoding='utf-8') as file:
             html_content = file.read()
 
     return html_content

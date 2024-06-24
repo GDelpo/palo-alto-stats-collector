@@ -229,7 +229,7 @@ def process_device_list(list_ips):
 
     return list_of_devices_obj
 
-def main_process():
+def collect_data_from_devices():
     # List of IP addresses to retrieve the information from
     list_ips = ['198.51.100.254'] # Pasar a un archivo de configuración, crear un método para leerlo
     devices = None
@@ -250,7 +250,7 @@ def main_process():
 
 if __name__ == '__main__':
 
-    devices = main_process()
+    devices = collect_data_from_devices()
     if devices:
         for device in devices:
             print(device.identify_model())
