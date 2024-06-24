@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup  # Para analizar y manipular documentos HTML y XML
 
 # Importaciones locales
 from logger import info_logger, error_logger
+from utils import ensure_dir_exists, get_source_dir
 
 def remove_specific_attributes_and_tags(html):
     """
@@ -47,25 +48,24 @@ def search_last_modified_html_file(parent_dir):
         str: The content of the most recently modified HTML file.
     """
     info_logger.info(f'Directory to search for HTML files: {parent_dir}')
-
+    # Initialize the HTML content variable
+    html_content = None
     # Search for HTML files in the specified directory
     html_files = [file for file in os.listdir(parent_dir) if file.endswith('.html')]
 
-    if not html_files:
-        raise FileNotFoundError("No HTML files found in the specified directory.")
+    if len(html_files) > 0:
+        # Find the most recently modified file
+        last_modified_file = max(html_files, key=lambda file: os.path.getmtime(os.path.join(parent_dir, file)))
 
-    # Find the most recently modified file
-    last_modified_file = max(html_files, key=lambda file: os.path.getmtime(os.path.join(parent_dir, file)))
+        # Get the full path of the file
+        full_path = os.path.abspath(os.path.join(parent_dir, last_modified_file))
 
-    # Get the full path of the file
-    full_path = os.path.abspath(os.path.join(parent_dir, last_modified_file))
+        # Print the full path of the most recently modified HTML file
+        info_logger.info(f'Path of the most recently modified ({datetime.datetime.fromtimestamp(os.path.getmtime(full_path))}) HTML file: {last_modified_file}')
 
-    # Print the full path of the most recently modified HTML file
-    info_logger.info(f'Path of the most recently modified ({datetime.datetime.fromtimestamp(os.path.getmtime(full_path))}) HTML file: {last_modified_file}')
-
-    # Load the HTML file
-    with open(full_path, 'r', encoding='utf-8') as file:
-        html_content = file.read()
+        # Load the HTML file
+        with open(full_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
 
     return html_content
 
@@ -237,11 +237,11 @@ def save_to_json(list_of_dicts):
     """
     # Get the source directory for the JSON files
     source_dir_json = get_source_dir('json')
-
-    # Create the directory if it does not exist
-    if not os.path.exists(source_dir_json):
-        os.makedirs(source_dir_json)
-
+    # Ensure that the directory exists
+    source_dir_json_exist = ensure_dir_exists(source_dir_json)
+    # Check if the directory was created
+    if not source_dir_json_exist:
+        info_logger.info(f"Directory {source_dir_json} created.")
     # Current directory + Source parent directory + JSON directory + name.json
     complete_name = os.path.join(source_dir_json, f'data_html_{datetime.date.today()}.json')
     try:
@@ -252,7 +252,7 @@ def save_to_json(list_of_dicts):
     except Exception as e:
         error_logger.error(f"Error saving data to {complete_name}")
         raise e
-    
+
 def get_source_dir(subdir=''):
     """
     Returns the path to the source directory.
@@ -291,22 +291,28 @@ def extract_and_process_html_tables():
     info_logger.info("Starting the HTML data extraction process...")
     # Get the source directory for the HTML files
     source_dir_html = get_source_dir('html')
-    # Get the content of the most recently modified HTML file
-    html_content = search_last_modified_html_file(source_dir_html)
-    # Search for tables within a specific range
-    tuple_of_tables_data = search_tables(html_content, 'PAN-OS for Firewalls', 'Prisma Access for Panorama')
-    # Check if there are tables within the specified range
-    if len(tuple_of_tables_data) > 0:
-        info_logger.info(f"Found {len(tuple_of_tables_data)} tables within the specified range.") 
-        # Create a list to store the dictionaries
-        list_of_dicts = process_info_from_tables(tuple_of_tables_data)
-        if len(list_of_dicts) > 0:
-            info_logger.info(f"Processed {len(list_of_dicts)} tables.")
-            # Save the list of dictionaries to a JSON file
-            save_to_json(list_of_dicts)
+    source_dir_html_exist = ensure_dir_exists(source_dir_html)
+    if not source_dir_html_exist:
+        info_logger.info(f"Directory {source_dir_html} created. Put the HTML file in this directory with info.")
     else:
-        error_logger.error("No tables found within the specified range.")
-        raise ValueError("No tables found within the specified range.")
+        # Get the content of the most recently modified HTML file
+        html_content = search_last_modified_html_file(source_dir_html)
+        if html_content:
+            # Search for tables within a specific range
+            tuple_of_tables_data = search_tables(html_content, 'PAN-OS for Firewalls', 'Prisma Access for Panorama')
+            # Check if there are tables within the specified range
+            if len(tuple_of_tables_data) > 0:
+                info_logger.info(f"Found {len(tuple_of_tables_data)} tables within the specified range.") 
+                # Create a list to store the dictionaries
+                list_of_dicts = process_info_from_tables(tuple_of_tables_data)
+                if len(list_of_dicts) > 0:
+                    info_logger.info(f"Processed {len(list_of_dicts)} tables.")
+                    # Save the list of dictionaries to a JSON file
+                    save_to_json(list_of_dicts)
+            else:
+                error_logger.error("No tables found within the specified range.")                
+        else:
+            error_logger.error(f'FileNotFoundError: No HTML files found in {source_dir_html} directory.')            
     # End the HTML data extraction process
     info_logger.info(f"{'-'*50}")
     

@@ -3,7 +3,6 @@ __pycache__/
 env/
 .vscode/
 logs/
-!source/
 
 # Ignorar archivos específicos
 *.xlsx

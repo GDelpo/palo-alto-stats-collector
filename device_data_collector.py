@@ -231,7 +231,7 @@ def process_device_list(list_ips):
 
 def main_process():
     # List of IP addresses to retrieve the information from
-    list_ips = ['192.0.2.254'] # Pasar a un archivo de configuración, crear un método para leerlo
+    list_ips = ['198.51.100.254'] # Pasar a un archivo de configuración, crear un método para leerlo
     devices = None
     # Log the start of the process    
     info_logger.info('Start the process of retrieving device information.')
@@ -253,4 +253,5 @@ if __name__ == '__main__':
     devices = main_process()
     if devices:
         for device in devices:
-            print(str(device.indentify_model()))
+            print(device.identify_model())
+        

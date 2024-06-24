@@ -19,6 +19,7 @@ class License:
 
 class Device:
     def __init__(self, hostname, model, serial, ip_address, sw_version, global_protect_client_package_version, app_version, av_version, threat_version, wildfire_version, url_filtering_version, device_certificate_status):
+        self.create_report_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         self.hostname = hostname
         self.model = model
         self.serial = serial
@@ -35,18 +36,20 @@ class Device:
     
     def identify_model(self):
         type_model = self.model[0:2]
-        return type_model
+        return str(type_model)
     
     def add_license(self, feature, issued, expired):
         self.licenses.append(License(feature, issued, expired))
 
     def to_dict(self):
+        licenses_dict = [license.to_dict() for license in self.licenses]
         return {
-            'ip_address': self.ip_address,
+            'create_report_datetime': self.create_report_datetime,
             'hostname': self.hostname,
             'model': self.model,
+            'serial': self.serial,
+            'ip_address': self.ip_address,
             'sw_version': self.sw_version,
-            'serial': self.serial,            
             'global_protect_client_package_version': self.global_protect_client_package_version,
             'app_version': self.app_version,
             'av_version': self.av_version,
@@ -54,7 +57,7 @@ class Device:
             'wildfire_version': self.wildfire_version,
             'url_filtering_version': self.url_filtering_version,
             'device_certificate_status': self.device_certificate_status,
-            'licenses': [license.to_dict() for license in self.licenses]
+            'licenses': licenses_dict
         }
 
     def __str__(self):
