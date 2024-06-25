@@ -25,6 +25,7 @@ class Device:
         self.serial = serial
         self.ip_address = ip_address
         self.sw_version = sw_version
+        self.sw_version_prefered = None
         self.global_protect_client_package_version = global_protect_client_package_version
         self.app_version = app_version
         self.av_version = av_version
@@ -36,7 +37,14 @@ class Device:
     
     def identify_model(self):
         type_model = self.model[0:2]
-        return str(type_model)
+        match type_model:
+            case 'PA':
+                type_model = 'PAN-OS for Firewalls'
+            case 'VM':
+                type_model = 'Panorama on VM / M-series'
+            case _:
+                type_model = None
+        return type_model
     
     def add_license(self, feature, issued, expired):
         self.licenses.append(License(feature, issued, expired))
@@ -50,6 +58,7 @@ class Device:
             'serial': self.serial,
             'ip_address': self.ip_address,
             'sw_version': self.sw_version,
+            'sw_version_prefered': self.sw_version_prefered,
             'global_protect_client_package_version': self.global_protect_client_package_version,
             'app_version': self.app_version,
             'av_version': self.av_version,

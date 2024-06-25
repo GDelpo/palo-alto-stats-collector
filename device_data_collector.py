@@ -253,5 +253,6 @@ if __name__ == '__main__':
     devices = collect_data_from_devices()
     if devices:
         for device in devices:
+            print(device)
             print(device.identify_model())
         
