@@ -207,13 +207,17 @@ def process_device_list(list_ips):
         exit()
     # List to store all the devices objects
     list_of_devices_obj = []
+    # counter
+    counter = 1
     # Iterate over the list of IP addresses
     for ip in list_ips:
+        print(f"Processing device {counter} of {len(list_ips)}")
         info_logger.info(f"Starting process for: {ip}")       
         # Generate the API key
         api_key = generate_api_key(ip, user_ip, password_ip)
         # If the API key was successfully generated, retrieve the device information
         if api_key:
+            print(f"API key generated for {ip}")
             # List to store all the data retrieved from the device
             data_total = retrieve_data_from_multiple_uris(ip, api_key)
             # Process the device information and create a new Device object
@@ -227,6 +231,8 @@ def process_device_list(list_ips):
                 error_logger.error(f"Failed to process device information for {ip}")
         else:
             error_logger.error(f"Failed to generate API key for {ip}")
+            print(f"API key not generated for {ip}")
+        counter += 1
             
     # Return the list of devices objects
     return list_of_devices_obj
@@ -237,7 +243,7 @@ def collect_data_from_devices(csv_file_path=None):
         # List of IP addresses to retrieve the information from
         list_ips = read_from_csv(csv_file_path) # Pasar a un archivo de configuración, crear un método para leerlo
         # Log the start of the process    
-        info_logger.info('Start the process of retrieving device information.')
+        info_logger.info(f'Start the process of retrieving device information of {len(list_ips)}')
         # List to store all the devices objects
         devices = process_device_list(list_ips)
         if len(devices) > 0:
