@@ -240,7 +240,7 @@ def collect_data_from_devices(csv_file_path=None):
     devices = None
     if csv_file_path:
         # List of IP addresses to retrieve the information from
-        list_ips = read_from_csv(csv_file_path) # Pasar a un archivo de configuración, crear un método para leerlo
+        list_ips = read_from_csv(csv_file_path)
         # Log the start of the process    
         info_logger.info(f'Start the process of retrieving device information of {len(list_ips)}')
         # List to store all the devices objects

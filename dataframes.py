@@ -8,7 +8,10 @@ def read_from_csv(csv_file_path):
     # Asumimos que las IPs están en una columna llamada 'ip'
     ips = df['ip'].tolist()
 
-    return ips
+    # Utilizamos pandas para eliminar duplicados mientras mantenemos el orden
+    unique_ips_list = pd.Series(ips).drop_duplicates().tolist()
+
+    return unique_ips_list
 
 def save_to_excel(devices, filename='output.xlsx'):
     """
