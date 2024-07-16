@@ -3,6 +3,7 @@ import os
 
 # Importaciones de bibliotecas externas
 import requests
+import urllib3
 import xmltodict
 from dotenv import load_dotenv
 
@@ -13,6 +14,9 @@ from logger import info_logger, error_logger
 
 # Load the environment variables
 load_dotenv()
+
+# Deshabilitar la advertencia de solicitud HTTPS no verificada
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def check_response(result_dict):
     """
@@ -95,6 +99,7 @@ def send_get_request_and_parse_response(url):
         requests.exceptions.RequestException: If the GET request fails.
 
     """
+    
     try:
         response = requests.post(url, verify=False, timeout=10)
         response.raise_for_status()
