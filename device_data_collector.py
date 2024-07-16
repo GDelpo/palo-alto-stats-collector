@@ -59,7 +59,6 @@ def generate_api_key(ip, user_ip, password_ip):
     """
     uri = f"/api/?type=keygen&user={user_ip}&password={password_ip}"
     full_url = get_full_url(ip, uri)
-    
     result_dict = send_get_request_and_parse_response(full_url)
     if result_dict:
         info_logger.info(f"API key successfully generated for {ip}")
@@ -97,7 +96,7 @@ def send_get_request_and_parse_response(url):
 
     """
     try:
-        response = requests.post(url, verify=False)
+        response = requests.post(url, verify=False, timeout=10)
         response.raise_for_status()
         result_dict = xmltodict.parse(response.text)
         if check_response(result_dict):
