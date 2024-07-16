@@ -18,7 +18,7 @@ class License:
 
 
 class Device:
-    def __init__(self, hostname, model, serial, ip_address, sw_version, global_protect_client_package_version, app_version, av_version, threat_version, wildfire_version, url_filtering_version, device_certificate_status):
+    def __init__(self, hostname, model, serial, ip_address, sw_version, gpc_version, app_version, av_version, threat_version, wildfire_version, url_filtering_version, device_certificate_status):
         self.create_report_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         self.hostname = hostname
         self.model = model
@@ -26,7 +26,7 @@ class Device:
         self.ip_address = ip_address
         self.sw_version = sw_version
         self.sw_version_prefered = None
-        self.global_protect_client_package_version = global_protect_client_package_version
+        self.gpc_version = gpc_version
         self.app_version = app_version
         self.av_version = av_version
         self.threat_version = threat_version
@@ -59,7 +59,7 @@ class Device:
             'ip_address': self.ip_address,
             'sw_version': self.sw_version,
             'sw_version_prefered': self.sw_version_prefered,
-            'global_protect_client_package_version': self.global_protect_client_package_version,
+            'gpc_version': self.gpc_version,
             'app_version': self.app_version,
             'av_version': self.av_version,
             'threat_version': self.threat_version,
@@ -72,7 +72,7 @@ class Device:
     def __str__(self):
         licenses_str = '\n\n'.join([str(license) for license in self.licenses])
         return (f"IP Address: {self.ip_address}\nHostname: {self.hostname}\nModel: {self.model}\nSW Version: {self.sw_version}\n"
-                f"Serial: {self.serial}\nGlobal Protect Client Package Version: {self.global_protect_client_package_version}\n"
+                f"Serial: {self.serial}\nGlobal Protect Client Package Version: {self.gpc_version}\n"
                 f"App Version: {self.app_version}\nAV Version: {self.av_version}\nThreat Version: {self.threat_version}\n"
                 f"Wildfire Version: {self.wildfire_version}\nURL Filtering Version: {self.url_filtering_version}\n"
                 f"Device Certificate Status: {self.device_certificate_status}\nLicenses:\n{licenses_str}")

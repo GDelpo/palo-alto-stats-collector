@@ -1,6 +1,14 @@
 import pandas as pd
 from logger import info_logger, error_logger
 
+def read_from_csv(csv_file_path):
+    # Leer el archivo CSV
+    df = pd.read_csv(csv_file_path)
+
+    # Asumimos que las IPs están en una columna llamada 'ip'
+    ips = df['ip'].tolist()
+
+    return ips
 
 def save_to_excel(devices, filename='output.xlsx'):
     """

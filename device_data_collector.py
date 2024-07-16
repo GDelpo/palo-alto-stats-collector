@@ -7,6 +7,7 @@ import xmltodict
 from dotenv import load_dotenv
 
 # Importaciones locales
+from dataframes import read_from_csv
 from models import Device
 from logger import info_logger, error_logger
 
@@ -226,24 +227,29 @@ def process_device_list(list_ips):
                 error_logger.error(f"Failed to process device information for {ip}")
         else:
             error_logger.error(f"Failed to generate API key for {ip}")
-
+            
+    # Return the list of devices objects
     return list_of_devices_obj
 
-def collect_data_from_devices():
-    # List of IP addresses to retrieve the information from
-    list_ips = ['198.51.100.254'] # Pasar a un archivo de configuración, crear un método para leerlo
+def collect_data_from_devices(csv_file_path=None):
     devices = None
-    # Log the start of the process    
-    info_logger.info('Start the process of retrieving device information.')
-    # List to store all the devices objects
-    devices = process_device_list(list_ips)
-    if len(devices) > 0:
-        info_logger.info(f'Number of devices processed: {len(devices)}')
+    if csv_file_path:
+        # List of IP addresses to retrieve the information from
+        list_ips = read_from_csv(csv_file_path) # Pasar a un archivo de configuración, crear un método para leerlo
+        # Log the start of the process    
+        info_logger.info('Start the process of retrieving device information.')
+        # List to store all the devices objects
+        devices = process_device_list(list_ips)
+        if len(devices) > 0:
+            info_logger.info(f'Number of devices processed: {len(devices)}')
+        else:
+            error_logger.error('No devices were processed.')
+        # Log the end of the process
+        info_logger.info('End of the process of retrieving device information.')
+        info_logger.info(f"{'-'*50}")
     else:
-        error_logger.error('No devices were processed.')
-    # Log the end of the process
-    info_logger.info('End of the process of retrieving device information.')
-    info_logger.info(f"{'-'*50}")
+        error_logger.error('No CSV file provided.')
+        
     # Return the devices list       
     return devices
     

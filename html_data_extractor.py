@@ -276,13 +276,15 @@ def extract_and_process_html_tables():
     Returns:
         None
     """
+    # Initialize the variable to check if the process is completed
+    is_completed = False
     # Start the HTML data extraction process
     info_logger.info("Starting the HTML data extraction process...")
     # Get the source directory for the HTML files
     source_dir_html = get_source_dir('html')
     source_dir_html_exist = ensure_dir_exists(source_dir_html)
     if not source_dir_html_exist:
-        info_logger.info(f"Directory {source_dir_html} created. Put the HTML file in this directory with info.")
+        info_logger.error(f"Directory {source_dir_html} created. Put the HTML file in this directory with info.")
     else:
         # Get the content of the most recently modified HTML file
         html_content = search_last_modified_html_file(source_dir_html)
@@ -298,12 +300,20 @@ def extract_and_process_html_tables():
                     info_logger.info(f"Processed {len(list_of_dicts)} tables.")
                     # Save the list of dictionaries to a JSON file
                     save_to_json(list_of_dicts)
+                    is_completed = True
             else:
                 error_logger.error("No tables found within the specified range.")                
         else:
-            error_logger.error(f'FileNotFoundError: No HTML files found in {source_dir_html} directory.')            
+            error_logger.error(f'FileNotFoundError: No HTML files found in {source_dir_html} directory.')
+    # Check if the process is completed           
+    if is_completed:
+        info_logger.info("HTML data extraction process completed.")
+    else:
+        info_logger.error("HTML data extraction process failed. Check the error logs for more information.")
     # End the HTML data extraction process
     info_logger.info(f"{'-'*50}")
+    return is_completed
     
 if __name__ == '__main__':
-    extract_and_process_html_tables()
+    can_complete_the_process = extract_and_process_html_tables()
+    print(f"Can complete the process: {can_complete_the_process}")
