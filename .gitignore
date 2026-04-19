@@ -1,18 +1,34 @@
-# Ignorar directorios
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+
+# Virtual environments
 env/
+venv/
+.venv/
+
+# IDE
 .vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+!.env.example
+
+# Logs
+*.log
 logs/
 
-# Ignorar archivos específicos
+# Generated outputs (datos de dispositivos)
 *.xlsx
-*.txt
-*.log
 *.html
 *.json
-.env
+output/
 
+# Allow example files
+!example_*.json
 
-# Excepciones (no ignorar estos archivos)
-!requirements.txt
-!README.md
+# OS
+.DS_Store
+Thumbs.db
