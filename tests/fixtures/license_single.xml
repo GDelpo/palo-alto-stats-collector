@@ -1,0 +1,11 @@
+<response status="success">
+  <result>
+    <licenses>
+      <entry>
+        <feature>Threat Prevention</feature>
+        <issued>January 15, 2026</issued>
+        <expired>no</expired>
+      </entry>
+    </licenses>
+  </result>
+</response>

@@ -1,0 +1,16 @@
+<response status="success">
+  <result>
+    <licenses>
+      <entry>
+        <feature>Threat Prevention</feature>
+        <issued>January 15, 2026</issued>
+        <expired>no</expired>
+      </entry>
+      <entry>
+        <feature>WildFire License</feature>
+        <issued>March 02, 2024</issued>
+        <expired>yes</expired>
+      </entry>
+    </licenses>
+  </result>
+</response>

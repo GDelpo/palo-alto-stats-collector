@@ -1,0 +1,18 @@
+<response status="success">
+  <result>
+    <system>
+      <hostname>fw-lab-01</hostname>
+      <ip-address>192.0.2.10</ip-address>
+      <model>PA-440</model>
+      <serial>000000000001</serial>
+      <sw-version>11.1.2</sw-version>
+      <global-protect-client-package-version>6.2.1</global-protect-client-package-version>
+      <app-version>8800-8900</app-version>
+      <av-version>4800-5300</av-version>
+      <threat-version>8800-8900</threat-version>
+      <wildfire-version>900000-900100</wildfire-version>
+      <url-filtering-version>20260101.20001</url-filtering-version>
+      <device-certificate-status>Valid</device-certificate-status>
+    </system>
+  </result>
+</response>

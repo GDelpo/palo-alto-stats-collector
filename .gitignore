@@ -32,3 +32,6 @@ output/
 # OS
 .DS_Store
 Thumbs.db
+
+# Device list, downloaded release pages and generated reports (real device data)
+source/
